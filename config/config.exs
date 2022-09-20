@@ -1,10 +1,10 @@
 import Mix.Config
 
 # Configure the main viewport for the Scenic application
-config :scen, :viewport, %{
+config :crows, :viewport, %{
   name: :main_viewport,
-  size: {1280, 768},
-  default_scene: Scen.Home,
+  size: {600, 650},
+  default_scene: Crows.Scene.Home,
   drivers: [
     [
       module: Scenic.Driver.Local,
@@ -14,4 +14,4 @@ config :scen, :viewport, %{
   ]
 }
 
-config :scenic, :assets, module: Scen.Assets
+config :scenic, :assets, module: Crows.Assets

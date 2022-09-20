@@ -1,9 +1,9 @@
-defmodule Scen do
+defmodule Crows do
   @moduledoc false
 
   def start(_type, _args) do
     # load the viewport configuration from config
-    main_viewport_config = Application.get_env(:scen, :viewport)
+    main_viewport_config = Application.get_env(:crows, :viewport)
 
     # start the application with the viewport
     children = [
