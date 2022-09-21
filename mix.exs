@@ -1,9 +1,9 @@
-defmodule Crow.MixProject do
+defmodule CrowNest.MixProject do
   use Mix.Project
 
   def project do
     [
-      app: :crow,
+      app: :crow_nest,
       version: "0.1.0",
       elixir: "~> 1.13",
       start_permanent: Mix.env() == :prod,
@@ -13,15 +13,15 @@ defmodule Crow.MixProject do
       aliases: [
         "deps.get": ["deps.get", "gleam.deps.get"]
       ],
-      erlc_paths: ["build/dev/erlang/crow/build"],
-      erlc_include_path: "build/dev/erlang/crow/include"
+      erlc_paths: ["build/dev/erlang/crow_nest/build"],
+      erlc_include_path: "build/dev/erlang/crow_nest/include"
     ]
   end
 
   # Run "mix help compile.app" to learn about applications.
   def application do
     [
-      mod: {Crow, []},
+      mod: {CrowNest, []},
       extra_applications: [:logger]
     ]
   end

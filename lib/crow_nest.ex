@@ -1,9 +1,9 @@
-defmodule Crow do
+defmodule CrowNest do
   @moduledoc false
 
   def start(_type, _args) do
     # load the viewport configuration from config
-    main_viewport_config = Application.get_env(:crow, :viewport)
+    main_viewport_config = Application.get_env(:crow_nest, :viewport)
 
     # start the application with the viewport
     children = [

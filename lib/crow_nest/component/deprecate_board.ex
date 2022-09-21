@@ -1,4 +1,4 @@
-defmodule Crow.Component.DeprecateBoard do
+defmodule CrowNest.Component.DeprecateBoard do
   @moduledoc false
   use Scenic.Component, has_children: false
 

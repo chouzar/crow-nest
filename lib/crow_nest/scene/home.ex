@@ -1,17 +1,17 @@
-defmodule Crow.Scene.Home do
+defmodule CrowNest.Scene.Home do
   use Scenic.Scene
 
   require Logger
 
   alias Scenic.Graph
   alias Scenic.Scene
-  alias Crow.Component.Board
+  alias CrowNest.Component.Board
 
   @impl Scenic.Scene
   def init(scene, _params, _opts) do
     graph =
       Graph.build()
-      |> Crow.Component.Board.add_to_graph(%{}, translate: {25, 25}, id: :the_board)
+      |> CrowNest.Component.Board.add_to_graph(%{}, translate: {25, 25}, id: :the_board)
 
     {:ok,
      scene

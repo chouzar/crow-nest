@@ -1,4 +1,4 @@
-defmodule Crow.Component.Board do
+defmodule CrowNest.Component.Board do
   @moduledoc false
   use Scenic.Component, has_children: false
 
