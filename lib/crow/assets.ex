@@ -1,6 +1,6 @@
-defmodule Crows.Assets do
+defmodule Crow.Assets do
   use Scenic.Assets.Static,
-    otp_app: :crows,
+    otp_app: :crow,
     sources: [
       "assets",
       {:scenic, "deps/scenic/assets"}

@@ -1,9 +1,9 @@
-defmodule Crows.MixProject do
+defmodule Crow.MixProject do
   use Mix.Project
 
   def project do
     [
-      app: :crows,
+      app: :crow,
       version: "0.1.0",
       elixir: "~> 1.13",
       start_permanent: Mix.env() == :prod,
@@ -14,7 +14,7 @@ defmodule Crows.MixProject do
   # Run "mix help compile.app" to learn about applications.
   def application do
     [
-      mod: {Crows, []},
+      mod: {Crow, []},
       extra_applications: [:logger]
     ]
   end

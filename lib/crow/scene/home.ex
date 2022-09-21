@@ -1,17 +1,17 @@
-defmodule Crows.Scene.Home do
+defmodule Crow.Scene.Home do
   use Scenic.Scene
 
   require Logger
 
   alias Scenic.Graph
   alias Scenic.Scene
-  alias Crows.Component.Board
+  alias Crow.Component.Board
 
   @impl Scenic.Scene
   def init(scene, _params, _opts) do
     graph =
       Graph.build()
-      |> Crows.Component.Board.add_to_graph(%{}, translate: {25, 25}, id: :the_board)
+      |> Crow.Component.Board.add_to_graph(%{}, translate: {25, 25}, id: :the_board)
 
     {:ok,
      scene
@@ -34,8 +34,8 @@ defmodule Crows.Scene.Home do
     Scene.get_child(scene, :the_board) |> IO.inspect(label: :get)
     Scene.put_child(scene, :the_board, :test) |> IO.inspect(label: :put)
 
-    #{:ok, [pid]} = Scene.child(scene, :the_board)
-    #GenServer.call(pid, :test)
+    # {:ok, [pid]} = Scene.child(scene, :the_board)
+    # GenServer.call(pid, :test)
 
     {:noreply, scene}
   end

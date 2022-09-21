@@ -1,4 +1,4 @@
-defmodule Crows.Component.Board do
+defmodule Crow.Component.Board do
   @moduledoc false
   use Scenic.Component, has_children: false
 
@@ -19,7 +19,6 @@ defmodule Crows.Component.Board do
   @width @default_size * @grid_size_x
   @height @default_size * @grid_size_y
   @sprite_size 16
-
 
   # Color defaults
   @check_board_color_a :light_steel_blue
@@ -283,28 +282,28 @@ defmodule Crows.Component.Board do
     {x * @default_size, y * @default_size}
   end
 
-  #@spec set_pieces(Scene.t(), list(piece)) :: Scene.t()
-  #defp set_pieces(scene, pieces) do
+  # @spec set_pieces(Scene.t(), list(piece)) :: Scene.t()
+  # defp set_pieces(scene, pieces) do
   #  Graph.modify(graph, :spritesheet_black, fn sheet ->
   #    Primitives.sprites(sheet, pieces)
   #  end)
-  #end
+  # end
 
-  #defp set_black_pieces(graph, spritesheet_id, pieces) do
+  # defp set_black_pieces(graph, spritesheet_id, pieces) do
   #  Graph.modify(graph, :spritesheet_black, fn sheet ->
   #    Primitives.sprites(sheet, pieces)
   #  end)
-  #end
+  # end
 
-  #defp set_white_pieces(graph, spritesheet_id, pieces) do
+  # defp set_white_pieces(graph, spritesheet_id, pieces) do
   #  Graph.modify(graph, :spritesheet_white, fn sheet ->
   #    Primitives.sprites(sheet, pieces)
   #  end)
-  #end
+  # end
   #
-  #defp set_highlight() do
+  # defp set_highlight() do
   #
-  #end
+  # end
 
   @spec draw_piece(piece(), position()) :: Scenic.Primitive.Sprites.draw_cmd()
   defp draw_piece(piece, {x, y}) do
@@ -321,6 +320,8 @@ defmodule Crows.Component.Board do
   @spec draw_command(position(), position()) :: Scenic.Primitive.Sprites.draw_cmd()
   defp draw_command({sprite_x, sprite_y}, {x, y}) do
     {point_x, point_y} = to_point({x, y})
-    {{sprite_x, sprite_y}, {@sprite_size, @sprite_size}, {point_x, point_y}, {@default_size, @default_size}}
+
+    {{sprite_x, sprite_y}, {@sprite_size, @sprite_size}, {point_x, point_y},
+     {@default_size, @default_size}}
   end
 end

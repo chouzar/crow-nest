@@ -1,8 +1,8 @@
 defmodule ScenTest do
   use ExUnit.Case
-  doctest Crows
+  doctest Crow
 
   test "greets the world" do
-    assert Crows.hello() == :world
+    assert Crow.hello() == :world
   end
 end
