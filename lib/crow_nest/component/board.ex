@@ -7,7 +7,6 @@ defmodule CrowNest.Component.Board do
   alias Scenic.Scene
   alias Scenic.Graph
   alias Scenic.Primitives
-  alias Scenic.Primitive
 
   # TODO: Defaults can go in an internal struct that can be later merged with an options parameter.
   # TODO: A single capture input for the whole board component.
@@ -55,7 +54,6 @@ defmodule CrowNest.Component.Board do
       Graph.build()
       |> grid(&checkered_square/2)
       |> grid(&highlight_square/2)
-      |> grid(&sprite_square/2)
       |> Primitives.sprites(
         {:spritesheet_piece_black,
          [
@@ -218,16 +216,6 @@ defmodule CrowNest.Component.Board do
       stroke: {2, {0, 0, 0, 0}},
       hidden: false,
       id: {:highlight, coordinate}
-    )
-  end
-
-  defp sprite_square(graph, {_x, _y} = coordinate) do
-    Primitives.rectangle(graph, {@default_size, @default_size},
-      translate: to_point(coordinate),
-      fill: {0, 0, 0, 0},
-      stroke: {0, {0, 0, 0, 0}},
-      hidden: false,
-      id: {:sprite, coordinate}
     )
   end
 

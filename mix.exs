@@ -33,9 +33,10 @@ defmodule CrowNest.MixProject do
       # {:dep_from_git, git: "https://github.com/elixir-lang/my_dep.git", tag: "0.1.0"}
       {:scenic, "~> 0.11.0-beta.0"},
       {:scenic_driver_local, "~> 0.11.0-beta.0"},
-      {:gleam_stdlib, "~> 0.22"},
-      {:gleam_otp, "~> 0.5"},
-      {:gleeunit, "~> 0.6", only: [:dev, :test], runtime: false}
+      # {:gleam_stdlib, "~> 0.22"},
+      # {:gleam_otp, "~> 0.5"},
+      # {:gleeunit, "~> 0.6", only: [:dev, :test], runtime: false}
+      {:for_the_crows, "~> 0.0.5"}
     ]
   end
 end
