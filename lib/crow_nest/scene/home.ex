@@ -5,44 +5,52 @@ defmodule CrowNest.Scene.Home do
 
   alias Scenic.Graph
   alias Scenic.Scene
-  alias CrowNest.Component.Board
+  alias CrowNest.Translate
 
   @impl Scenic.Scene
   def init(scene, _params, _opts) do
+    gamestate =
+      :crow.new()
+      |> :crow.players("charcoal", "bone")
+      |> :crow.deploy("A3", "bone", :knight)
+      |> :crow.deploy("B5", "bone", :pawn)
+      |> :crow.deploy("C7", "bone", :pawn)
+      |> :crow.deploy("E6", "bone", :bishop)
+      |> :crow.deploy("H2", "bone", :king)
+      |> :crow.deploy("F8", "bone", :queen)
+      |> :crow.deploy("D4", "charcoal", :knight)
+
+    positions =
+      gamestate
+      |> :crow.get_positions()
+      |> Translate.cast_positions()
+
+    player_positions_a =
+      Map.filter(positions, fn {_position, check} -> check.player == "charcoal" end)
+
+    player_positions_b =
+      Map.filter(positions, fn {_position, check} -> check.player == "bone" end)
+
     graph =
       Graph.build()
-      |> CrowNest.Component.Board.add_to_graph(%{}, translate: {25, 25}, id: :the_board)
+      |> CrowNest.Component.Board.add_to_graph({player_positions_a, player_positions_b},
+        id: :board,
+        translate: {25, 25}
+      )
 
     {:ok,
      scene
      |> Scene.assign(:graph, graph)
+     |> Scene.assign(:gamestate, gamestate)
      |> push_graph(graph)}
   end
 
   @impl Scenic.Scene
-  # This receives simple notifications and handles a UI state machine
-  # Scenes themselves do the work of drawing.
-  def handle_event({type, id, value}, from, scene) do
-    # IO.inspect(from, label: :board_component)
-    # IO.inspect(scene, label: :home_scene)
-    Logger.info(id: id, type: type, value: value)
+  def handle_event(event, from, scene) do
+    Logger.info(event: inspect(event), from: from)
 
-    Scene.get(scene, :graph)
-    |> Graph.modify(:the_board, fn board -> board end)
-
-    Scene.fetch_child(scene, :the_board) |> IO.inspect(label: :fetch)
-    Scene.get_child(scene, :the_board) |> IO.inspect(label: :get)
-    Scene.put_child(scene, :the_board, :test) |> IO.inspect(label: :put)
-
-    # {:ok, [pid]} = Scene.child(scene, :the_board)
-    # GenServer.call(pid, :test)
+    # :ok = Scene.put_child(scene, :board, {player_positions_a, player_positions_b})
 
     {:noreply, scene}
   end
-
-  # @spec highlight(list(Board.position)) :: :ok
-  # defp highlight(scene, positions)s do
-  #  Scene.put_child(scene, :the_board, :test) |> IO.inspect(label: :put)
-  #  :ok
-  # end
 end
