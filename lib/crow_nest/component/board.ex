@@ -21,7 +21,7 @@ defmodule CrowNest.Component.Board do
   # Color defaults
   @check_board_color_a :light_steel_blue
   @check_board_color_b :antique_white
-  @highlight_board_color_path {0, 0xFF, 0xFF, 127}
+  # @highlight_board_color_path {0, 0xFF, 0xFF, 127}
 
   # These datastructures are used internally to draw the board
   @type position :: {non_neg_integer(), non_neg_integer()}
@@ -36,16 +36,13 @@ defmodule CrowNest.Component.Board do
   @transparent {0x00, 0x00, 0x00, 0x00}
   @yellow {0xFF, 0xFF, 0x00, 150}
   @red {0xFF, 0x00, 0x00, 150}
+  @orange {0xEC, 0x9E, 0x0E, 150}
+  # @light_orange {0xEC, 0x9E, 0x0E, 75}
 
   @impl Scenic.Component
   def validate(data) do
-    case data do
-      data ->
-        {:ok, data}
-
-      _other ->
-        {:error, "this will raise an error"}
-    end
+    # {:error, "this will raise an error"}
+    {:ok, data}
   end
 
   @impl Scenic.Scene
@@ -71,63 +68,69 @@ defmodule CrowNest.Component.Board do
      |> Scene.assign(:hover, :out_of_bounds)
      # Annotates the position of our last click
      |> Scene.assign(:click, :none)
+     # Annotates the path/captures of our last selected piece
+     |> Scene.assign(:path, [])
+     |> Scene.assign(:captures, [])
      |> push_graph(graph)}
   end
 
   @impl Scenic.Scene
   def handle_input({:cursor_pos, position}, _id, scene) do
+    mode = Scene.get(scene, :mode)
     current_position = Scene.get(scene, :hover)
+    new_position = to_position(position)
 
-    case to_position(position) do
-      ^current_position ->
+    case {mode, current_position, new_position} do
+      {_mode, current, current} ->
         # Remains same coordinate, do nothing
         {:noreply, scene}
 
-      new_position ->
-        {player_positions_a, player_positions_b} = Scene.get(scene, :player_positions)
-
-        check =
-          player_positions_a
-          |> Map.merge(player_positions_b)
-          |> Map.get(new_position, %{path: [], captures: []})
-
-        graph =
-          Scene.get(scene, :graph)
-          |> update_highlight_board(@all_positions, @transparent)
-          |> update_highlight_board(check.path, @yellow)
-          |> update_highlight_board(check.captures, @red)
-
-        # Changed board coordinate, send to parent scene
-        :ok = send_parent(scene, :hover, new_position)
-
+      {:cursor, _current, new} ->
         {:noreply,
          scene
-         |> Scene.assign(:graph, graph)
-         |> Scene.assign(:hover, new_position)
-         |> push_graph(graph)}
+         |> highlight_path(new, @yellow, @red)
+         |> Scene.assign(:hover, new)
+         |> render()}
+
+      {:move, _current, new} ->
+        {:noreply,
+         scene
+         # |> cursor_over_path(current, new)
+         |> Scene.assign(:hover, new)
+         |> render()}
     end
   end
 
   @btn_press 1
-  @btn_release 0
+  # @btn_release 0
 
-  def handle_input({:cursor_button, {:btn_right, @btn_press, _mods, position}}, _id, scene) do
+  def handle_input({:cursor_button, {:btn_left, @btn_press, _mods, position}}, _id, scene) do
+    path = Scene.get(scene, :path)
+    from_position = Scene.get(scene, :click)
     to_position = to_position(position)
 
     case Scene.get(scene, :mode) do
       :cursor ->
-        # highlight position
         {:noreply,
          scene
-         |> Scene.assign(:mode, :move)}
+         |> highlight_path(to_position, @orange, @orange)
+         |> Scene.assign(:mode, :move)
+         |> Scene.assign(:click, to_position)
+         |> render()}
 
       :move ->
-        {:noreply, scene}
-    end
+        if MapSet.member?(MapSet.new(path), to_position) do
+          # If click goes inside highlighted path
+          :ok = send_parent(scene, :move, {from_position, to_position})
+        end
 
-    {:noreply,
-     scene
-     |> Scene.assign(:click, to_position)}
+        {:noreply,
+         scene
+         |> clear_path()
+         |> Scene.assign(:mode, :cursor)
+         |> Scene.assign(:click, to_position)
+         |> render()}
+    end
   end
 
   def handle_input({:cursor_button, {_button, _value, _mods, _position}}, _id, scene) do
@@ -146,6 +149,65 @@ defmodule CrowNest.Component.Board do
      |> Scene.assign(:graph, graph)
      |> Scene.assign(:player_positions, {player_positions_a, player_positions_b})
      |> push_graph(graph)}
+  end
+
+  # Scene helpers
+
+  defp clear_path(scene) do
+    graph =
+      Scene.get(scene, :graph)
+      |> update_highlight_board(@all_positions, @transparent)
+
+    scene
+    |> Scene.assign(:graph, graph)
+    |> Scene.assign(:path, [])
+    |> Scene.assign(:captures, [])
+  end
+
+  # TODO storing the current path and captures woudl maybe remove some conditional-repetitive logic
+  defp highlight_path(scene, position, color_path, color_capture) do
+    {player_positions_a, player_positions_b} = Scene.get(scene, :player_positions)
+
+    %{path: path, captures: captures} =
+      player_positions_a
+      |> Map.merge(player_positions_b)
+      |> Map.get(position, %{path: [], captures: []})
+
+    graph =
+      Scene.get(scene, :graph)
+      |> update_highlight_board(@all_positions, @transparent)
+      |> update_highlight_board(path, color_path)
+      |> update_highlight_board(captures, color_capture)
+
+    scene
+    |> Scene.assign(:graph, graph)
+    |> Scene.assign(:path, path)
+    |> Scene.assign(:captures, captures)
+  end
+
+  # defp cursor_over_path(scene, current_position, new_position) do
+  #  path = Scene.get(scene, :path)
+
+  #  graph = Scene.get(scene, :graph)
+
+  #  graph =
+  #    case Enum.any?(path, fn position -> position == new_position end) do
+  #      true ->
+  #        graph
+  #        |> update_highlight_board([current_position], @orange)
+  #        |> update_highlight_board([new_position], @light_orange)
+
+  #      false ->
+  #        graph
+  #    end
+
+  #  scene
+  #  |> Scene.assign(:graph, graph)
+  # end
+
+  defp render(scene) do
+    graph = Scene.get(scene, :graph)
+    push_graph(scene, graph)
   end
 
   # Graph helpers
