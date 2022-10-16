@@ -18,11 +18,6 @@ defmodule CrowNest.Component.Board do
   @height @default_size * @grid_size_y
   @sprite_size 16
 
-  # Color defaults
-  @check_board_color_a :light_steel_blue
-  @check_board_color_b :antique_white
-  # @highlight_board_color_path {0, 0xFF, 0xFF, 127}
-
   # These datastructures are used internally to draw the board
   @type position :: {non_neg_integer(), non_neg_integer()}
   @type piece :: :pawn | :rook | :knight | :bishop | :queen | :king
@@ -33,11 +28,15 @@ defmodule CrowNest.Component.Board do
 
   @all_positions for y <- 1..@grid_size_y, x <- 1..@grid_size_y, do: {x, y}
 
-  @transparent {0x00, 0x00, 0x00, 0x00}
-  @yellow {0xFF, 0xFF, 0x00, 150}
-  @red {0xFF, 0x00, 0x00, 150}
-  @orange {0xEC, 0x9E, 0x0E, 150}
-  # @light_orange {0xEC, 0x9E, 0x0E, 75}
+  ## Blue / Pink
+  @c_transparent {0x00, 0x00, 0x00, 000}
+  @c_highlight {0x62, 0x35, 0x6E, 085}
+  @c_move {0x62, 0x35, 0x6E, 170}
+  @c_capture {0xf9, 0x00, 0x01, 255}
+
+  # Green / Paper checkered board
+  @c_checkered_a {0x45, 0x6D, 0x69, 0xFF}
+  @c_checkered_b {0xF1, 0xF3, 0xE5, 0xFF}
 
   @impl Scenic.Component
   def validate(data) do
@@ -88,14 +87,13 @@ defmodule CrowNest.Component.Board do
       {:cursor, _current, new} ->
         {:noreply,
          scene
-         |> highlight_path(new, @yellow, @red)
+         |> highlight_path(new)
          |> Scene.assign(:hover, new)
          |> render()}
 
       {:move, _current, new} ->
         {:noreply,
          scene
-         # |> cursor_over_path(current, new)
          |> Scene.assign(:hover, new)
          |> render()}
     end
@@ -109,16 +107,30 @@ defmodule CrowNest.Component.Board do
     from_position = Scene.get(scene, :click)
     to_position = to_position(position)
 
-    case Scene.get(scene, :mode) do
-      :cursor ->
+    # If click is ona unit that can move...
+    #
+    {player_positions_a, player_positions_b} = Scene.get(scene, :player_positions)
+    positions = Map.merge(player_positions_a, player_positions_b)
+
+    case {Scene.get(scene, :mode), Map.get(positions, to_position)} do
+      {:cursor, nil} ->
+        {:noreply, scene}
+
+      {:cursor, %{can_move: true}} ->
         {:noreply,
          scene
-         |> highlight_path(to_position, @orange, @orange)
+         |> move_path(to_position)
          |> Scene.assign(:mode, :move)
          |> Scene.assign(:click, to_position)
          |> render()}
 
-      :move ->
+      {:cursor, %{can_move: false}} ->
+        {:noreply,
+         scene
+         |> Scene.assign(:click, to_position)
+         |> render()}
+
+      {:move, _check} ->
         if MapSet.member?(MapSet.new(path), to_position) do
           # If click goes inside highlighted path
           :ok = send_parent(scene, :move, {from_position, to_position})
@@ -156,7 +168,7 @@ defmodule CrowNest.Component.Board do
   defp clear_path(scene) do
     graph =
       Scene.get(scene, :graph)
-      |> update_highlight_board(@all_positions, @transparent)
+      |> update_highlight_board(@all_positions, fill: @c_transparent, stroke: {0, @c_transparent})
 
     scene
     |> Scene.assign(:graph, graph)
@@ -165,7 +177,7 @@ defmodule CrowNest.Component.Board do
   end
 
   # TODO storing the current path and captures woudl maybe remove some conditional-repetitive logic
-  defp highlight_path(scene, position, color_path, color_capture) do
+  defp move_path(scene, position) do
     {player_positions_a, player_positions_b} = Scene.get(scene, :player_positions)
 
     %{path: path, captures: captures} =
@@ -175,9 +187,8 @@ defmodule CrowNest.Component.Board do
 
     graph =
       Scene.get(scene, :graph)
-      |> update_highlight_board(@all_positions, @transparent)
-      |> update_highlight_board(path, color_path)
-      |> update_highlight_board(captures, color_capture)
+      |> update_highlight_board(@all_positions, fill: @c_transparent, stroke: {0, @c_transparent})
+      |> update_highlight_board(path, fill: @c_move, stroke: {0, @c_move})
 
     scene
     |> Scene.assign(:graph, graph)
@@ -185,25 +196,26 @@ defmodule CrowNest.Component.Board do
     |> Scene.assign(:captures, captures)
   end
 
-  # defp cursor_over_path(scene, current_position, new_position) do
-  #  path = Scene.get(scene, :path)
+  # TODO storing the current path and captures woudl maybe remove some conditional-repetitive logic
+  defp highlight_path(scene, position) do
+    {player_positions_a, player_positions_b} = Scene.get(scene, :player_positions)
 
-  #  graph = Scene.get(scene, :graph)
+    %{path: path, captures: captures} =
+      player_positions_a
+      |> Map.merge(player_positions_b)
+      |> Map.get(position, %{path: [], captures: []})
 
-  #  graph =
-  #    case Enum.any?(path, fn position -> position == new_position end) do
-  #      true ->
-  #        graph
-  #        |> update_highlight_board([current_position], @orange)
-  #        |> update_highlight_board([new_position], @light_orange)
+    graph =
+      Scene.get(scene, :graph)
+      |> update_highlight_board(@all_positions, fill: @c_transparent, stroke: {0, @c_transparent})
+      |> update_highlight_board(path, fill: @c_highlight, stroke: {0, @c_highlight})
+      |> update_highlight_board(captures, fill: @c_highlight, stroke: {2, @c_capture})
 
-  #      false ->
-  #        graph
-  #    end
-
-  #  scene
-  #  |> Scene.assign(:graph, graph)
-  # end
+    scene
+    |> Scene.assign(:graph, graph)
+    |> Scene.assign(:path, path)
+    |> Scene.assign(:captures, captures)
+  end
 
   defp render(scene) do
     graph = Scene.get(scene, :graph)
@@ -277,13 +289,13 @@ defmodule CrowNest.Component.Board do
      {@default_size, @default_size}}
   end
 
-  defp update_highlight_board(graph, positions, color) do
-    Enum.reduce(positions, graph, &update_higlight_square(&1, &2, color))
+  defp update_highlight_board(graph, positions, opts) do
+    Enum.reduce(positions, graph, &update_higlight_square(&1, &2, opts))
   end
 
-  defp update_higlight_square({x, y} = _coordinate, graph, color) do
+  defp update_higlight_square({x, y} = _coordinate, graph, opts) do
     Graph.modify(graph, {:highlight, {x, y}}, fn primitive ->
-      Primitives.update_opts(primitive, fill: color)
+      Primitives.update_opts(primitive, opts)
     end)
   end
 
@@ -297,16 +309,16 @@ defmodule CrowNest.Component.Board do
   defp switch_color(coordinates) do
     case coordinates do
       {x, y} when rem(x, 2) == 0 and rem(y, 2) == 0 ->
-        @check_board_color_a
+        @c_checkered_a
 
       {x, y} when rem(x, 2) == 1 and rem(y, 2) == 0 ->
-        @check_board_color_b
+        @c_checkered_b
 
       {x, y} when rem(x, 2) == 0 and rem(y, 2) == 1 ->
-        @check_board_color_b
+        @c_checkered_b
 
       {x, y} when rem(x, 2) == 1 and rem(y, 2) == 1 ->
-        @check_board_color_a
+        @c_checkered_a
     end
   end
 

@@ -27,10 +27,10 @@ defmodule CrowNest.Translate do
   end
 
   def cast_check(check) do
-    {:check, {:player, player}, piece, path, captures} = check
+    {:check, can_move, {:player, player}, piece, path, captures} = check
     path = Enum.map(path, &cast_coordinate/1)
     captures = Enum.map(captures, &cast_coordinate/1)
-    %{player: player, piece: piece, path: path, captures: captures}
+    %{can_move: can_move, player: player, piece: piece, path: path, captures: captures}
   end
 
   defp cast_coordinate({:coordinate, x, y}), do: {x, y}

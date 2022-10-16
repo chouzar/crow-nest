@@ -36,7 +36,7 @@ defmodule CrowNest.MixProject do
       # {:gleam_stdlib, "~> 0.22"},
       # {:gleam_otp, "~> 0.5"},
       # {:gleeunit, "~> 0.6", only: [:dev, :test], runtime: false}
-      {:for_the_crows, "~> 0.0.6"}
+      {:for_the_crows, "~> 0.0.11"}
     ]
   end
 end
